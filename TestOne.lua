@@ -21,7 +21,7 @@
 --http://www.classy-studios.com/Downloads/RobloxFileSpec.pdf
 
 --Dependencies
-print'Acá cargando Dependencia'
+print'Acá cargando Dependencia 5'
 local BASE_FOLDER   = script
 local Stream = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Kat-Digital/RBXM-Reader/master/Stream.lua"))()
 print'Stream cargado'
