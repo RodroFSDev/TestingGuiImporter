@@ -21,14 +21,10 @@
 --http://www.classy-studios.com/Downloads/RobloxFileSpec.pdf
 
 --Dependencies
-print'Acá cargando Dependencia 5'
 local BASE_FOLDER   = script
 local Stream = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Kat-Digital/RBXM-Reader/master/Stream.lua"))()
-print'Stream cargado'
 local Binary = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Kat-Digital/RBXM-Reader/master/Binary.lua"))()
-print'Binary cargado'
 local LZ4 = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/RodroFSDev/TestingGuiImporter/main/LZ4.lua"))()
-print'LZ4 cargado'
 
 --Shorten/Efficiency-related declarations
 local byte = string.byte
