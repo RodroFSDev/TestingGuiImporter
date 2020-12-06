@@ -35,7 +35,7 @@ local insert = table.insert
 function compareByteArrays(array0, array1)
 	--Disqualify any cases where array  lengths are not the same
 	if (#array0 ~= #array1) then return false end
-	
+
 	--Compare byte arrays as strings
 	local str0 = char(unpack(array0, 1, #array0))
 	local str1 = char(unpack(array1, 1, #array1))
@@ -63,12 +63,12 @@ local PROPERTY_NAME_FIX = {
 function setProperty(instance, name, value)
 	--Some values are serialized under a different name than the property - we can look these up in the table
 	local name = PROPERTY_NAME_FIX[name] or name
-	
+
 	--Attempt to set the property
 	local ok, errorStr = pcall(setPropertyDirect, instance, name, value)
 	if (not ok) then
 		--warn("Failed to set property " .. name .. " on " .. instance.ClassName .. " to " .. tostring(value) .. ": " .. errorStr)
-		
+
 		if (instance:IsA("BaseScript") and name == "Source") then
 			print("Source: ")
 			print(value)
@@ -82,24 +82,24 @@ function readInterleaved(stream, valueLength, valueCount)
 	--array to be filled with the same table pointer, resulting in a bug where all returned values are
 	--the same
 	local values = table.create(valueCount, 0)
-	
+
 	--Fill with new tables with the correct length
 	for i = 1, valueCount do
 		values[i] = table.create(valueLength, 0)
 	end
-	
+
 	for i = 1, valueLength do
 		--Read byte for each value
 		for j = 1, valueCount do
 			values[j][i] = stream:read(1)
 		end
 	end
-	
+
 	--Concatenate all the values
 	for i = 1, valueCount do
 		values[i] = table.concat(values[i])
 	end
-	
+
 	return values
 end
 
@@ -107,7 +107,7 @@ end
 --This undoes the transformation integers undergo before being stored to a file
 function readRobloxInt(strInput, littleEndian)
 	local int = Binary.decodeInt(strInput, littleEndian)
-	
+
 	if (int % 2 == 0) then
 		return int / 2
 	else
@@ -122,7 +122,7 @@ function readRobloxFloat(strInput)
 	local int = Binary.decodeInt(strInput, false)
 	local sign = int % 2
 	local str = Binary.encodeInt(sign*0x80000000 + (int-sign)/2, 4)
-	
+
 	--Decode string to float
 	return Binary.decodeFloat(str, false)
 end
@@ -163,7 +163,7 @@ local CFRAME_SPECIAL_ANGLES = {
 	[0x09] = CFrame.Angles(CF090, CF090, CF000);
 	[0x0A] = CFrame.Angles(CF000, CF000, CF090);
 	[0x0C] = CFrame.Angles(CF270, CF270, CF000);
-	
+
 	[0x0D] = CFrame.Angles(CF270, CF000, CF270);
 	[0x0E] = CFrame.Angles(CF000, CF270, CF000);
 	[0x10] = CFrame.Angles(CF090, CF000, CF090);
@@ -172,7 +172,7 @@ local CFRAME_SPECIAL_ANGLES = {
 	[0x15] = CFrame.Angles(CF270, CF000, CF180);
 	[0x17] = CFrame.Angles(CF000, CF000, CF180);
 	[0x18] = CFrame.Angles(CF090, CF000, CF180);
-	
+
 	[0x19] = CFrame.Angles(CF000, CF000, CF270);
 	[0x1B] = CFrame.Angles(CF090, CF270, CF000);
 	[0x1C] = CFrame.Angles(CF180, CF000, CF090);
@@ -194,72 +194,72 @@ PROPERTY_FUNCTIONS = {
 		for i = 1, nInstances do 
 			values[i] = readString(stream)
 		end
-		
+
 		return values
 	end;
-	
+
 	--Boolean
 	[0x02] = function(nInstances, stream)
 		local values = table.create(nInstances, false)
 		for i = 1, nInstances do 
 			values[i] = stream:read(1) ~= "\0"
 		end
-		
+
 		return values
 	end;
-	
+
 	--Int32
 	[0x03] = function(nInstances, stream)
 		local valuesRaw = readInterleaved(stream, 4, nInstances)
 		local values = table.create(nInstances, 0)
-		
+
 		for i = 1, nInstances do
 			values[i] = readRobloxInt(valuesRaw[i])
 		end
-		
+
 		return values
 	end;
-	
+
 	--Float
 	[0x04] = function(nInstances, stream)
 		local valuesRaw = readInterleaved(stream, 4, nInstances)
 		local values = table.create(nInstances, 0)
-		
+
 		for i = 1, nInstances do
 			values[i] = readRobloxFloat(valuesRaw[i])
 		end
-		
+
 		return values
 	end;
-	
+
 	--Double
 	[0x05] = function(nInstances, stream)
 		local valuesRaw = readInterleaved(stream, 8, nInstances)
 		local values = table.create(nInstances, 0)
-		
+
 		for i = 1, nInstances do
 			values[i] = Binary.decodeDouble(valuesRaw[i]:reverse())
 		end
-		
+
 		return values
 	end;
-	
+
 	--UDim
 	[0x06] = function(nInstances, stream)
 		local floatsRaw = readInterleaved(stream, 4, nInstances)
 		local int32sRaw = readInterleaved(stream, 4, nInstances)
 		local values = table.create(nInstances, 0)
-		
+
 		for i = 1, nInstances do
 			values[i] = UDim.new(
 				readRobloxFloat(floatsRaw[i]),
 				readRobloxInt  (int32sRaw[i])
 			)
 		end
-		
+
 		return values
 	end;
-	
+
 	--UDim2
 	[0x07] = function(nInstances, stream)
 		local scalesX  = readInterleaved(stream, 4, nInstances)
@@ -267,7 +267,7 @@ PROPERTY_FUNCTIONS = {
 		local offsetsX = readInterleaved(stream, 4, nInstances)
 		local offsetsY = readInterleaved(stream, 4, nInstances)
 		local values = table.create(nInstances, 0)
-		
+
 		for i = 1, nInstances do
 			values[i] = UDim2.new(
 				readRobloxFloat(scalesX[i]),
@@ -276,14 +276,14 @@ PROPERTY_FUNCTIONS = {
 				readRobloxInt  (offsetsY[i])
 			)
 		end
-		
+
 		return values
 	end;
-	
+
 	--Ray
 	[0x08] = function(nInstances, stream)
 		local values = table.create(nInstances, 0)
-		
+
 		for i = 1, nInstances do
 			local originX = Binary.decodeFloat(stream:read(4):reverse())
 			local originY = Binary.decodeFloat(stream:read(4):reverse())
@@ -291,65 +291,65 @@ PROPERTY_FUNCTIONS = {
 			local dirX    = Binary.decodeFloat(stream:read(4):reverse())
 			local dirY    = Binary.decodeFloat(stream:read(4):reverse())
 			local dirZ    = Binary.decodeFloat(stream:read(4):reverse())
-			
+
 			values[i] = Ray.new(
 				Vector3.new(originX, originY, originZ), 
 				Vector3.new(dirX, dirY, dirZ)
 			)
 		end
-		
+
 		return values
 	end;
-	
+
 	--Faces
 	[0x09] = function(nInstances, stream)
 		local values = table.create(nInstances, 0)
-		
+
 		for i = 1, nInstances do
 			local index = Binary.decodeInt(stream:read(1))
 			local surface = NORMAL_IDS[index]
 			values[i] = surface
-			
+
 			assert(surface ~= nil, "RBXMReader E007: Unknown surface type: " .. index)
 		end
-		
+
 		return values
 	end;
-	
+
 	--Axis
 	[0x0A] = function(nInstances, stream)
 		local values = table.create(nInstances, 0)
-		
+
 		for i = 1, nInstances do
 			local index = Binary.decodeInt(stream:read(1))
 			local axis = AXIS_VALUES[index]
 			values[i] = axis
-			
+
 			assert(axis ~= nil, "RBXMReader E008: Unknown axis type: " .. index)
 		end
-		
+
 		return values
 	end;
-	
+
 	--BrickColor
 	[0x0B] = function(nInstances, stream)
 		local valuesRaw = readInterleaved(stream, 4, nInstances)
 		local values = table.create(nInstances, 0)
-		
+
 		for i = 1, nInstances do
 			values[i] = BrickColor.new(Binary.decodeInt(stream:read(4)))
 		end
-		
+
 		return values
 	end;
-	
+
 	--Color3
 	[0x0C] = function(nInstances, stream)
 		local valuesRawR = readInterleaved(stream, 4, nInstances)
 		local valuesRawG = readInterleaved(stream, 4, nInstances)
 		local valuesRawB = readInterleaved(stream, 4, nInstances)
 		local values = table.create(nInstances, 0)
-		
+
 		for i = 1, nInstances do
 			values[i] = Color3.new(
 				readRobloxFloat(valuesRawR[i]),
@@ -357,33 +357,33 @@ PROPERTY_FUNCTIONS = {
 				readRobloxFloat(valuesRawB[i])
 			)
 		end
-		
+
 		return values
 	end;
-	
+
 	--Vector2
 	[0x0D] = function(nInstances, stream)
 		local valuesRawX = readInterleaved(stream, 4, nInstances)
 		local valuesRawY = readInterleaved(stream, 4, nInstances)
 		local values = table.create(nInstances, 0)
-		
+
 		for i = 1, nInstances do
 			values[i] = Vector2.new(
 				readRobloxFloat(valuesRawX[i]),
 				readRobloxFloat(valuesRawY[i])
 			)
 		end
-		
+
 		return values
 	end;
-	
+
 	--Vector3
 	[0x0E] = function(nInstances, stream)
 		local valuesRawX = readInterleaved(stream, 4, nInstances)
 		local valuesRawY = readInterleaved(stream, 4, nInstances)
 		local valuesRawZ = readInterleaved(stream, 4, nInstances)
 		local values = table.create(nInstances, 0)
-		
+
 		for i = 1, nInstances do
 			values[i] = Vector3.new(
 				readRobloxFloat(valuesRawX[i]),
@@ -391,23 +391,23 @@ PROPERTY_FUNCTIONS = {
 				readRobloxFloat(valuesRawZ[i])
 			)
 		end
-		
+
 		return values
 	end;
-	
+
 	--0x0F is invalid
-	
+
 	--CFrame
 	[0x10] = function(nInstances, stream)
 		local cframeAngles = table.create(nInstances, CFrame.new())
 		local values = table.create(nInstances, CFrame.new())
-		
+
 		--Get CFrame angles
 		for i = 1, nInstances do
 			--Check CFrame type
 			local byteValue = Binary.decodeInt(stream:read(1))
 			local specialAngle = CFRAME_SPECIAL_ANGLES[byteValue]
-			
+
 			--If we have a special value, store it. Otherwise, read 9 untransformed floats to get
 			--the rotation matrix
 			if (specialAngle == nil) then
@@ -415,48 +415,48 @@ PROPERTY_FUNCTIONS = {
 				for j = 1, 9 do
 					matrixValues[j] = Binary.decodeFloat(stream:read(4), true)
 				end
-				
+
 				cframeAngles[i] = CFrame.new(0, 0, 0, unpack(matrixValues, 1, 9))
 			else
 				cframeAngles[i] = specialAngle
 			end
 		end
-		
+
 		--Read position data - invoke function for Vector3s
 		local positions = PROPERTY_FUNCTIONS[0x0E](nInstances, stream)
-		
+
 		--Generate final CFrames
 		for i = 1, nInstances do
 			values[i] = CFrame.new(positions[i]) * cframeAngles[i]
 		end
-		
+
 		return values
 	end;
-	
+
 	--Quaternion; unsure how this is implemented. Might require some experimentation later
 	--TODO: Fix this
 	[0x11] = function(nInstances, stream)
 		warn("RBXMReader W001: Using quaternions")
 		return PROPERTY_FUNCTIONS[0x10](nInstances, stream)
 	end;
-	
+
 	--Enums - Roblox accepts EnumProperty = number so we can just return an array of numbers
 	[0x12] = function(nInstances, stream)
 		local valuesRaw = readInterleaved(stream, 4, nInstances)
 		local values = table.create(nInstances, 0)
-		
+
 		for i = 1, nInstances do
 			values[i] = Binary.decodeInt(valuesRaw[i])
 		end
-		
+
 		return values
 	end;
-	
+
 	--Instance references
 	[0x13] = function(nInstances, stream, instances)
 		local valuesRaw = readInterleaved(stream, 4, nInstances)
 		local values = table.create(nInstances, 0)
-		
+
 		local lastValue = 0
 		for i = 1, nInstances do
 			local rawValue = readRobloxInt(valuesRaw[i])
@@ -464,25 +464,25 @@ PROPERTY_FUNCTIONS = {
 			lastValue = newValue
 			values[i] = instances[newValue]
 		end
-		
+
 		return values
 	end;
-	
+
 	--Color3uint8
 	[0x1A] = function(nInstances, stream)
 		local valuesR = table.create(nInstances, 0)
 		local valuesG = table.create(nInstances, 0)
 		local valuesB = table.create(nInstances, 0)
 		local values  = table.create(nInstances, 0)
-		
+
 		for i = 1, nInstances do valuesR[i] = Binary.decodeInt(stream:read(1)) end
 		for i = 1, nInstances do valuesG[i] = Binary.decodeInt(stream:read(1)) end
 		for i = 1, nInstances do valuesB[i] = Binary.decodeInt(stream:read(1)) end
-		
+
 		for i = 1, nInstances do 
 			values[i] = Color3.fromRGB(valuesR[i], valuesG[i], valuesB[i])
 		end
-		
+
 		return values
 	end;
 }
@@ -491,54 +491,54 @@ PROPERTY_FUNCTIONS = {
 function readRBXM(binaryData)
 	--Create new stream
 	local data = Stream.new(binaryData)
-	
+
 	--Read & verify file header
 	--First 16 bytes should be 3C 72 6F 62 6C 6F 78 21 89 FF 0D 0A 1A 0A 00 00
 	local headerActualBytes = { byte(data:read(16), 1, 16) }
 	local headerExpectedBytes = {
-			0x3C, 0x72, 0x6F, 0x62, 
-			0x6C, 0x6F, 0x78, 0x21, 
-			0x89, 0xFF, 0x0D, 0x0A, 
-			0x1A, 0x0A, 0x00, 0x00 
-		}
-	
+		0x3C, 0x72, 0x6F, 0x62, 
+		0x6C, 0x6F, 0x78, 0x21, 
+		0x89, 0xFF, 0x0D, 0x0A, 
+		0x1A, 0x0A, 0x00, 0x00 
+	}
+
 	assert(
-			compareByteArrays(headerActualBytes, headerExpectedBytes),
-			"RBXMReader E001: Invalid RBXM header"
-		)
-	
+		compareByteArrays(headerActualBytes, headerExpectedBytes),
+		"RBXMReader E001: Invalid RBXM header"
+	)
+
 	--Create a new model to dump instances into
 	local rootModel = Instance.new("Model")
-	
+
 	--Read number of unique types
 	local nUniqueTypes = Binary.decodeInt(data:read(4), true)
 	local nObjects     = Binary.decodeInt(data:read(4), true)
-	
+
 	--Verify that the next 8 bytes are 0
 	assert(Binary.decodeInt(data:read(4)) == 0, "RBXMReader E002: Invalid RBXM header")
 	assert(Binary.decodeInt(data:read(4)) == 0, "RBXMReader E002: Invalid RBXM header")
-	
+
 	--Create lookup tables for information
 	local METADATA      = {}
 	local SHAREDSTRINGS = {}
 	local TYPES         = {}
 	local INSTANCES     = {}
-	
+
 	--Read header data
 	while true do
 		--Read type through look-ahead, once we get a PROP, exit
 		local typeStr = data:lookAhead(4)
 		if (typeStr == "PROP") then break end
-		
+
 		--Read type bytes and compressed data
 		local headerType = data:read(4)
 		local headerData = Stream.new(LZ4.decode(data))
-		
+
 		--Read META, SSTR and INST records
 		if (headerType == "META") then
 			--Read number of key/value pairs (possibly?); this *should* be 1 at the moment
 			local length, j = Binary.decodeInt(headerData:read(4), true), 0
-			
+
 			for j = 1, length do
 				--Read key/value pairs, and store the result
 				local key   = readString(headerData)
@@ -555,10 +555,10 @@ function readRBXM(binaryData)
 			local isService  = headerData:read(1) ~= "\0"
 			local nInstances = Binary.decodeInt(headerData:read(4), true)
 			local referents  = readInterleaved(headerData, 4, nInstances)
-			
+
 			--Reading RBXM, so we should never have a service
 			assert(not isService, "RBXMReader E004: File contains services")
-			
+
 			--Create the instances
 			local instances, j, referent = table.create(nInstances, 0), 1, 0
 			for j = 1, nInstances do
@@ -567,7 +567,7 @@ function readRBXM(binaryData)
 				instances[j] = instance
 				INSTANCES[referent] = instance
 			end
-			
+
 			--Store the type reference
 			TYPES[index] = {
 				Index         = index;
@@ -581,13 +581,13 @@ function readRBXM(binaryData)
 			error("RBXMReader E003: Unexpected header object type: " .. headerType)
 		end
 	end
-	
+
 	--Read actual body
 	while true do
 		--Read object type and decompress its data
 		local objType = data:read(4)
 		local objData = Stream.new(LZ4.decode(data))
-		
+
 		--These seem to all be PROP elements but we'll make this easily expandable for the future
 		if (objType == "PROP") then
 			--Handle property descriptor
@@ -597,15 +597,15 @@ function readRBXM(binaryData)
 			local descriptor   = TYPES[classIndex]
 			local nInstances   = descriptor.InstanceCount
 			local instances    = descriptor.Instances
-			
+
 			--Check for property type
-			local func = PROPERTY_FUNCTIONS[propertyType]
+			local func = PROPERTY_FUNCTIONS[propertyType] or print('No existe', propertyType)
 			--assert(func ~= nil, "RBXMReader E006: Invalid or unknown property type: " .. propertyType)
-			
+
 			if (func ~= nil) then
 				--Get property values
 				local values = func(nInstances, objData, INSTANCES)
-				
+
 				--Iterate over instances with this function
 				local j
 				for j = 1, nInstances do
@@ -622,13 +622,13 @@ function readRBXM(binaryData)
 			local parentLength = Binary.decodeInt(objData:read(4), true)
 			local referents = readInterleaved(objData, 4, parentLength)
 			local parents   = readInterleaved(objData, 4, parentLength)
-			
+
 			local cReferent = 0
 			local cParent   = 0
 			for i = 1, parentLength do
 				cReferent = cReferent + readRobloxInt(referents[i])
 				cParent   = cParent   + readRobloxInt(parents[i])
-				
+
 				local instance = INSTANCES[cReferent]
 				if (cParent == -1) then
 					instance.Parent = rootModel
@@ -636,13 +636,13 @@ function readRBXM(binaryData)
 					instance.Parent = INSTANCES[cParent]
 				end
 			end
-			
+
 			break
 		else
 			error("RBXMReader E005: File contains unexpected body element: " .. objType)
 		end
 	end
-	
+
 	--Ending bytes
 	local endExpectedBytes = { 
 		0x45, 0x4E, 0x44, 0x00, 
@@ -653,14 +653,14 @@ function readRBXM(binaryData)
 		0x62, 0x6C, 0x6F, 0x78, 
 		0x3E 
 	}
-	
+
 	local footerBytes = { byte(data:read(25), 1, 25) }
-	
+
 	assert(
-			compareByteArrays(footerBytes, endExpectedBytes),
-			"RBXMReader E006: Invalid RBXM footer"
-		)
-	
+		compareByteArrays(footerBytes, endExpectedBytes),
+		"RBXMReader E006: Invalid RBXM footer"
+	)
+
 	--Return root object
 	return rootModel
 end
