@@ -27,7 +27,7 @@ local Stream = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/K
 print'Stream cargado'
 local Binary = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Kat-Digital/RBXM-Reader/master/Binary.lua"))()
 print'Binary cargado'
-local LZ4 = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Kat-Digital/RBXM-Reader/master/LZ4.lua"))()
+local LZ4 = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/RodroFSDev/TestingGuiImporter/main/LZ4.lua"))()
 print'LZ4 cargado'
 
 --Shorten/Efficiency-related declarations
