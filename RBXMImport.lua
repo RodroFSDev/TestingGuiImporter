@@ -21,6 +21,7 @@
 --http://www.classy-studios.com/Downloads/RobloxFileSpec.pdf
 
 --Dependencies
+print'Rodro Version OwO'
 local BASE_FOLDER   = script
 local Stream = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Kat-Digital/RBXM-Reader/master/Stream.lua"))()
 local Binary = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Kat-Digital/RBXM-Reader/master/Binary.lua"))()
